@@ -14,6 +14,7 @@ package paystation.domain;
 import org.junit.Test;
 import static org.junit.Assert.*;
 import org.junit.Before;
+import java.util.*;
 
 public class PayStationImplTest {
 
@@ -138,4 +139,101 @@ public class PayStationImplTest {
         assertEquals("Insert after cancel should work",
                 10, ps.readDisplay());
     }
+    
+    /**
+     * Verify that cancel return map value
+     */
+    @Test
+    public void shouldReturnMapValuesAfterCancel()
+            throws IllegalCoinException {
+        
+        Map<Integer, Integer> returnedMap = ps.cancel();
+        
+        assertEquals("Return value should be", 0, (int)returnedMap.get(5));
+        assertEquals("Return value should be", 0, (int)returnedMap.get(10));
+        assertEquals("Return value should be", 0, (int)returnedMap.get(25));
+        
+        
+        ps.addPayment(5); //entered only one nickel
+        returnedMap = ps.cancel();
+        assertEquals("Return value should be", 1, (int)returnedMap.get(5));
+        
+        ps.addPayment(10);
+        returnedMap = ps.cancel();
+        assertEquals("Return value should be", 1, (int)returnedMap.get(10));
+        
+        ps.addPayment(25);
+        returnedMap = ps.cancel();
+        assertEquals("Return value should be", 1, (int)returnedMap.get(25));      
+    }
+    
+    /**
+     * Verify that cancel clear map
+     */
+    @Test
+    public void shouldClearMapAfterCancel()
+            throws IllegalCoinException {
+        
+        Map<Integer, Integer> firstMap = ps.cancel();
+        Map<Integer, Integer> secondMap = ps.cancel();
+        
+        ps.addPayment(5);
+        firstMap = ps.cancel();
+        secondMap = ps.cancel();
+        
+        assertEquals("Return value should be", 1, (int)firstMap.get(5));
+        assertEquals("Return value should be", 0, (int)secondMap.get(5));
+    }
+    
+     /** Verify that buy will clear map
+     */
+    @Test
+    public void shouldClearMapAfterBuy()
+            throws IllegalCoinException {
+        Map<Integer, Integer> testMap;
+        ps.addPayment(5);
+        ps.buy();
+        testMap = ps.cancel();
+       
+        assertEquals("Return value should be", 0, (int)testMap.get(5));
+        assertEquals("Return value should be", 0, (int)testMap.get(10));
+        assertEquals("Return value should be", 0, (int)testMap.get(25));
+    }
+    
+    /** Verify that empty should return total
+     */
+    @Test
+    public void emptyShouldReturnTotal()
+            throws IllegalCoinException {
+        
+        ps.addPayment(5);
+        ps.buy();
+        assertEquals("Return value should be", 5, ps.empty());
+    }
+    
+    /** Verify that  Canceled entry does not add to the amount returned by empty.
+     */
+    @Test
+    public void CancelShouldNotChangeTotal()
+            throws IllegalCoinException {
+        
+        ps.addPayment(5);
+        ps.cancel();
+        assertEquals("Return value should be", 0, ps.empty());
+    }
+    
+    /** Verify that  Canceled entry does not add to the amount returned by empty.
+     */
+    @Test
+    public void EmptyShouldResetTotal()
+            throws IllegalCoinException {
+        
+        ps.addPayment(5);
+        ps.buy();
+       
+        assertEquals("Return value should be", 5, ps.empty());
+        assertEquals("Return value should be", 0, ps.empty());
+        
+    }
+    
 }
